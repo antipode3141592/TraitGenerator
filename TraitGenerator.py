@@ -3,11 +3,14 @@ import csv
 import random
 from tkinter import Tk, ttk, Label, Entry, Checkbutton, Button, IntVar, StringVar, Text, N, W, E, S, WORD, END, font
 
-def getRandomArchetype(archetypeList, regions = ['All']):
+def getRandomArchetype(archetypeList, regions = 'All', pcOnly = True):
     """Return a random selection from the provided list"""
-    if 'All' in regions:
-        choice = random.choice(archetypeList)
-        return choice
+    if regions == 'All' or 'All' in regions:
+        if pcOnly:
+            return random.choice([archetype for archetype in archetypeList if archetype['PC'] == 'PC'])
+        return random.choice(archetypeList)
+    if pcOnly:
+        return random.choice([archetype for archetype in archetypeList if archetype['Region'] in regions and archetype['PC'] == 'PC'])
     return random.choice([archetype for archetype in archetypeList if archetype['Region'] in regions])
 
 def getRandomGender(genderList):
@@ -44,16 +47,16 @@ def characterToString(outputTraits, masterAdverbList, index, archetype, gender):
     _outputString = _outputString + '\n\n'
     return _outputString
 
-def generate(characterCount, textBox, characterRegions=['All']):
+def generate(characterCount, textBox, characterRegions='All', pcOnly=True):
     """Generate characterCount number of characters"""
     #if 'All' is in characterRegions, set characterRegions to 'All'
-    if 'All' in characterRegions:
+    if characterRegions == 'All' or 'All' in characterRegions:
         characterRegions = ['All']
     #clear the text box
     textBox.delete(1.0, END)
     for index in range(characterCount):
         characterTraits = getRandomTraits(MASTER_TRAIT_LIST, 3)
-        archetype = getRandomArchetype(MASTER_ARCHETYPE_LIST, characterRegions)
+        archetype = getRandomArchetype(MASTER_ARCHETYPE_LIST, characterRegions, pcOnly)
         gender = getRandomGender(MASTER_GENDER_LIST)
         characterText = printCharacter(characterTraits, MASTER_ADVERB_LIST, index, archetype, gender)
         textBox.insert(END, characterText)
@@ -64,7 +67,7 @@ def regionSelected():
     for value in REGION_CHECKBOXES.values():
         if value.get() == '1':
             if value not in SELECTED_REGIONS:
-                SELECTED_REGIONS.append(value._name)
+                SELECTED_REGIONS.append(str(value))
 
 ###############################################################################################
 # Definitions
@@ -127,6 +130,11 @@ quantityBox = Entry(mainframe, text=_quantity)
 quantityBox.grid(row=0, column=1)
 _quantity.set(CHARACTER_COUNT)
 
+# PC/NPC Selection via checkbox
+Label(mainframe, text="PC Only").grid(row=0, column=2)
+IS_PC = IntVar()
+Checkbutton(mainframe, text="PC", variable=IS_PC).grid(row=0, column=3)
+
 # Region Selection
 Label(mainframe, text="Regions", font=underlined_font).grid(row=1, column=2)
 
@@ -141,14 +149,16 @@ for region in MASTER_REGION_LIST:
         i = 0
         j += 1
 
-# PC/NPC Selection via checkbox
+
+
 
 #display text window for the characters to be displayed
 
 
 # Generate Character(s) Button
 
-generateButton = Button(mainframe, text="Generate", command=lambda: generate(int(quantityBox.get()), characterTextBox, SELECTED_REGIONS))
+generateButton = Button(mainframe, text="Generate", 
+                        command=lambda: generate(int(quantityBox.get()), characterTextBox, SELECTED_REGIONS, IS_PC.get() == 1))
 generateButton.grid(row=j+1, column=2, padx=5, pady=5)
 
 
