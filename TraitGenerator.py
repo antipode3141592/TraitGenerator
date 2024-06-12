@@ -14,8 +14,8 @@ def getRandomArchetype(archetypeList, regions = 'All', pcOnly = True):
     return random.choice([archetype for archetype in archetypeList if archetype['Region'] in regions])
 
 def getRandomGender(genderList):
-    """Return a random selection from the provided list"""
-    return random.choice(genderList)
+    """Return a random selection from the provided dictionary based on the weights provided"""
+    return random.choices(list(genderList.keys()), weights=genderList.values())[0]
 
 def getRandomTrait(traitList, currentList):
     """Return a random selection from the provided list if not in list.  If all ready in list, recurse"""
@@ -39,7 +39,7 @@ def printCharacter(outputTraits, masterAdverbList, index, archetype, gender):
 
 def characterToString(outputTraits, masterAdverbList, index, archetype, gender):
     """Return a string representation of the character"""
-    _outputString = f"Character {index + 1}, {archetype['Archetype']} (pg. {archetype['Page']}), {gender} : \n"
+    _outputString = f"{index + 1}) {archetype['Archetype']} (pg. {archetype['Page']}), {gender} : \n\t"
     for trait in outputTraits:
         _outputString = _outputString + str(random.choice(masterAdverbList)) + " " + trait['Trait']
         if trait != outputTraits[len(outputTraits)-1]:
@@ -57,7 +57,7 @@ def generate(characterCount, textBox, characterRegions='All', pcOnly=True):
     for index in range(characterCount):
         characterTraits = getRandomTraits(MASTER_TRAIT_LIST, 3)
         archetype = getRandomArchetype(MASTER_ARCHETYPE_LIST, characterRegions, pcOnly)
-        gender = getRandomGender(MASTER_GENDER_LIST)
+        gender = getRandomGender(MASTER_GENDER_DICT)
         characterText = printCharacter(characterTraits, MASTER_ADVERB_LIST, index, archetype, gender)
         textBox.insert(END, characterText)
 
@@ -78,7 +78,11 @@ TRAIT_LIST_FILE = 'Traits.csv'
 ARCHETYPE_LIST_FILE = 'Archetypes.csv'
 REGIONS_LIST_FILE = 'Regions.csv'
 MASTER_TRAIT_LIST = []
-MASTER_GENDER_LIST = ['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They']
+MASTER_GENDER_DICT = {'He/Him' : 0.35,
+                      'She/Her' : 0.35,
+                      'They/Them': 0.1, 
+                      'He/They': 0.1,
+                      'She/They': 0.1}
 MASTER_ARCHETYPE_LIST = []
 MASTER_ADVERB_LIST = ['Always', 'Commonly', 'Consistently', 'Constantly', 'Continuously',
                       'Extremely', 'Frequently', 'Generally', 'Infrequently', 'Never', 'Normally',
@@ -149,19 +153,12 @@ for region in MASTER_REGION_LIST:
         i = 0
         j += 1
 
-
-
-
-#display text window for the characters to be displayed
-
-
 # Generate Character(s) Button
-
-generateButton = Button(mainframe, text="Generate", 
+generateButton = Button(mainframe, text="Generate",
                         command=lambda: generate(int(quantityBox.get()), characterTextBox, SELECTED_REGIONS, IS_PC.get() == 1))
 generateButton.grid(row=j+1, column=2, padx=5, pady=5)
 
-
+#display text window for the characters to be displayed
 Label(mainframe, text="Characters", font=underlined_font).grid(row=j+2, column=2)
 characterTextBox = Text(mainframe, wrap=WORD)
 TEXTBOX_HEIGHT = 5
